@@ -1,0 +1,35 @@
+{
+  "name": "recaser",
+  "version": "0.1.0",
+  "description": "Bulk-rename files to match a certain case.",
+  "author": "Jakub Barczyk",
+  "main": "recase.js",
+  "scripts": {
+    "rename": "node ./src/index.js"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "recase": "recase.js"
+  },
+  "dependencies": {
+    "casey-js": "^1.4.0"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "keywords": [
+    "batch",
+    "case",
+    "rename",
+    "utility"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jakubbarczyk/recaser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jakubbarczyk/recaser/issues"
+  },
+  "homepage": "https://github.com/jakubbarczyk/recaser#readme"
+}
