@@ -1,11 +1,11 @@
 {
   "name": "recaser",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Bulk-rename files to match a certain case.",
   "author": "Jakub Barczyk",
   "main": "recase.js",
   "scripts": {
-    "rename": "node ./src/index.js"
+    "rename": "node ./recase.js"
   },
   "preferGlobal": true,
   "bin": {

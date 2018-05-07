@@ -24,7 +24,7 @@ const Case = {
 /**
  * TODO: use yargs to handle arguments
  */
-const pathArg = resolve(__dirname, process.argv[2])
+const pathArg = resolve(process.cwd(), process.argv[2])
 const caseArg = Case[process.argv[3]] || noop
 
 /**
