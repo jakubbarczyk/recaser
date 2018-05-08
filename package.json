@@ -1,18 +1,15 @@
 {
   "name": "recaser",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Bulk-rename files to match a certain case.",
   "author": "Jakub Barczyk",
   "main": "recase.js",
-  "scripts": {
-    "rename": "node ./recase.js"
-  },
   "preferGlobal": true,
   "bin": {
     "recase": "recase.js"
   },
   "dependencies": {
-    "casey-js": "^1.4.0"
+    "casey-js": "^1.6.0"
   },
   "engines": {
     "node": ">=8.0.0"
