@@ -1,72 +1,98 @@
 #! /usr/bin/env node
 
-const { join, resolve } = require('path')
+'use strict'
+
+const { join, resolve, parse } = require('path')
 const { stat, readdir, rename } = require('fs')
 const { promisify } = require('util')
+
+const yargs = require('yargs')
+const { toLowerCase, toUpperCase, toCamelCase, toPascalCase, toKebabCase, toSnakeCase, toTrainCase } = require('casey-js')
 
 const statAsync = promisify(stat)
 const readdirAsync = promisify(readdir)
 const renameAsync = promisify(rename)
 
-const casey = require('casey-js')
-
-const noop = (_) => _
-
 const Case = {
-  lower: casey.toLowerCase,
-  upper: casey.toUpperCase,
-  camel: casey.toCamelCase,
-  kebab: casey.toKebabCase,
-  snake: casey.toSnakeCase,
-  train: casey.toTrainCase
+  lower: toLowerCase,
+  upper: toUpperCase,
+  camel: toCamelCase,
+  pascal: toPascalCase,
+  kebab: toKebabCase,
+  snake: toSnakeCase,
+  train: toTrainCase
 }
 
-/**
- * TODO: use yargs to handle arguments
- */
-const pathArg = resolve(process.cwd(), process.argv[2])
-const caseArg = Case[process.argv[3]] || noop
+const argv = yargs
+  .command('recase <case> [path]', 'bulk-rename files to match a certain case', (yargs) => {
+    yargs
+      .positional('case', {
+        choices: Object.keys(Case),
+        describe: 'the case to be used',
+        type: 'string'
+      })
+      .positional('path', {
+        default: process.cwd(),
+        describe: 'the path to recase',
+        type: 'string'
+      })
+  })
+  .help()
+  .alias({ 'help': 'h', 'version': 'v' })
+  .epilog('Copyright © 2018 Jakub Barczyk')
+  .argv
 
 /**
- * Recaser
+ * Maps positional arguments
  */
-readdirAsync(pathArg)
+Object.assign(argv, { case: argv._[0], path: argv._[1] })
+
+const alphanumericCharacter = /^\w+/
+const recase = defaultToNoop(Case[argv.case])
+const directory = resolve(process.cwd(), argv.path)
+
+/**
+ * Renames files in specified directory
+ */
+readdirAsync(directory)
   .then(handleFiles)
   .catch(handleError)
 
-/**
- * TODO: try to filter inside the isFile function
- */
-async function isFile(path) {
-  return await statAsync(join(pathArg, path))
+function noop(_) {
+  return _
+}
+
+function defaultToNoop(fn = noop) {
+  return fn
+}
+
+function startsWithAlphanumericCharacter(file) {
+  return alphanumericCharacter.test(file)
+}
+
+async function isFile(file) {
+  return await statAsync(join(directory, file))
     .then((stats) => stats.isFile())
-    .then((isFile) => isFile ? path : undefined)
+    .then((isFile) => isFile ? file : undefined)
     .catch(handleError)
 }
 
-function fragment(file) {
-  const fragments = file.split('.')
-  return {
-    raw: file,
-    name: fragments[0],
-    ext: fragments.slice(1).join('.')
-  }
-}
-
 async function casify(file) {
-  const oldName = join(pathArg, file.raw)
   /**
-   * TODO: extract the following transformation to a dedicated function
+   * Skips uncommon files, e.g. .gitignore
    */
-  const newName = join(pathArg, caseArg(file.name).concat('.').concat(file.ext))
-  return await renameAsync(oldName, newName)
+  if (startsWithAlphanumericCharacter(file.base)) {
+    const oldName = join(directory, file.base)
+    const newName = join(directory, recase(file.name).concat(file.ext))
+    return await renameAsync(oldName, newName)
+  }
 }
 
 function handleFiles(files) {
   return Promise
     .all(files.map((file) => isFile(file)))
     .then((files) => files.filter((file) => file))
-    .then((files) => files.map((file) => fragment(file)))
+    .then((files) => files.map((file) => parse(file)))
     .then((files) => Promise.all(files.map(casify)))
     .catch(handleError)
 }

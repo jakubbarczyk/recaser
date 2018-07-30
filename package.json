@@ -1,6 +1,6 @@
 {
   "name": "recaser",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Bulk-rename files to match a certain case.",
   "author": "Jakub Barczyk",
   "main": "recase.js",
@@ -9,15 +9,25 @@
     "recase": "recase.js"
   },
   "dependencies": {
-    "casey-js": "^1.6.0"
+    "casey-js": "^1.6.0",
+    "yargs": "^11.1.0"
   },
   "engines": {
     "node": ">=8.0.0"
   },
   "keywords": [
     "batch",
+    "bulk",
+    "camel",
     "case",
+    "kebab",
+    "lower",
+    "pascal",
+    "recase",
     "rename",
+    "snake",
+    "train",
+    "upper",
     "utility"
   ],
   "license": "MIT",

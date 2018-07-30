@@ -4,18 +4,34 @@
 
 ## Installation
 
-Install the package with npm:
+Installing the package with _npm_:
 
 ```shell
 npm install --global recaser
 ```
 
+Installing the package with _yarn_:
+
+```shell
+yarn global add recaser
+```
+
 ## Usage
 
-Recase all files in `my-folder` to camel case:
+Recaser handles the following cases:
+
+- lower
+- upper
+- camel
+- pascal
+- kebab
+- snake
+- train
+
+Recasing all files in `my-folder` to camel case:
 
 ```javascript
-recase ./my-folder camel
+recase camel ./my-folder
 ```
 
 ## License
