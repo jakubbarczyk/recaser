@@ -9,8 +9,8 @@
     "recase": "recase.js"
   },
   "dependencies": {
-    "casey-js": "^1.6.0",
-    "yargs": "^11.1.0"
+    "casey-js": "^1.6.1",
+    "minimist": "^1.2.0"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -20,6 +20,7 @@
     "bulk",
     "camel",
     "case",
+    "cli",
     "kebab",
     "lower",
     "pascal",

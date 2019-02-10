@@ -2,17 +2,31 @@
 
 'use strict'
 
-const { join, resolve, parse } = require('path')
-const { stat, readdir, rename } = require('fs')
+const { join, parse } = require('path')
+const { access, accessSync, constants, stat, statSync, readdir, rename } = require('fs')
 const { promisify } = require('util')
-
-const yargs = require('yargs')
-const { toLowerCase, toUpperCase, toCamelCase, toPascalCase, toKebabCase, toSnakeCase, toTrainCase } = require('casey-js')
 
 const statAsync = promisify(stat)
 const readdirAsync = promisify(readdir)
 const renameAsync = promisify(rename)
 
+const minimist = require('minimist')
+
+// Parses arguments
+const argv = minimist(process.argv.slice(2), {
+  alias: {
+    h: 'help',
+    v: 'version'
+  },
+  // TODO: when present, recase directories
+  // boolean: ['d'] --> directory
+  // TODO: when present, recase subdirectories
+  // boolean: ['r'] --> recursive
+})
+
+const { toLowerCase, toUpperCase, toCamelCase, toPascalCase, toKebabCase, toSnakeCase, toTrainCase } = require('casey-js')
+
+// Creates case dictionary
 const Case = {
   lower: toLowerCase,
   upper: toUpperCase,
@@ -23,48 +37,39 @@ const Case = {
   train: toTrainCase
 }
 
-const argv = yargs
-  .command('recase <case> [path]', 'bulk-rename files to match a certain case', (yargs) => {
-    yargs
-      .positional('case', {
-        choices: Object.keys(Case),
-        describe: 'the case to be used',
-        type: 'string'
-      })
-      .positional('path', {
-        default: process.cwd(),
-        describe: 'the path to recase',
-        type: 'string'
-      })
-  })
-  .help()
-  .alias({ 'help': 'h', 'version': 'v' })
-  .epilog('Copyright © 2018 Jakub Barczyk')
-  .argv
-
-/**
- * Maps positional arguments
- */
+// Maps positional arguments
 Object.assign(argv, { case: argv._[0], path: argv._[1] })
 
-const alphanumericCharacter = /^\w+/
-const recase = defaultToNoop(Case[argv.case])
-const directory = resolve(process.cwd(), argv.path)
+const recase = Case[argv.case]
 
-/**
- * Renames files in specified directory
- */
+// Verifies if the specified case exist
+if (!recase) {
+  console.error(`
+  Cannot use case "${argv.case}".
+  
+  Try one of the following:
+  ${Object.keys(Case).join(', ')}`)
+  process.exit(1)
+}
+
+const directory = join(process.cwd(), argv.path)
+
+// Verifies if the specified directory exist and is accessible
+try {
+  statSync(directory)
+  accessSync(directory, constants.R_OK & constants.W_OK)
+} catch {
+  console.error(`
+    Cannot find directory "${argv.path}".`)
+  process.exit(1)
+}
+
+// Renames files in a directory
 readdirAsync(directory)
   .then(handleFiles)
   .catch(handleError)
 
-function noop(_) {
-  return _
-}
-
-function defaultToNoop(fn = noop) {
-  return fn
-}
+const alphanumericCharacter = /^\w+/
 
 function startsWithAlphanumericCharacter(file) {
   return alphanumericCharacter.test(file)
@@ -77,10 +82,8 @@ async function isFile(file) {
     .catch(handleError)
 }
 
-async function casify(file) {
-  /**
-   * Skips uncommon files, e.g. .gitignore
-   */
+async function toCase(file) {
+  // Skips uncommon files, e.g. .gitignore
   if (startsWithAlphanumericCharacter(file.base)) {
     const oldName = join(directory, file.base)
     const newName = join(directory, recase(file.name).concat(file.ext))
@@ -93,7 +96,7 @@ function handleFiles(files) {
     .all(files.map((file) => isFile(file)))
     .then((files) => files.filter((file) => file))
     .then((files) => files.map((file) => parse(file)))
-    .then((files) => Promise.all(files.map(casify)))
+    .then((files) => Promise.all(files.map(toCase)))
     .catch(handleError)
 }
 

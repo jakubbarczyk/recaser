@@ -28,6 +28,12 @@ Recaser handles the following cases:
 - snake
 - train
 
+## Options
+
+TODO
+
+## Examples
+
 Recasing all files in `my-folder` to camel case:
 
 ```javascript
