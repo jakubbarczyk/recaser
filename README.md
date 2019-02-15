@@ -18,6 +18,14 @@ yarn global add recaser
 
 ## Usage
 
+Bulk-rename files in the `Movies` directory  to match `camel` case:
+
+```javascript
+recase camel ./Movies
+```
+
+## Options
+
 Recaser handles the following cases:
 
 - lower
@@ -27,18 +35,6 @@ Recaser handles the following cases:
 - kebab
 - snake
 - train
-
-## Options
-
-TODO
-
-## Examples
-
-Recasing all files in `my-folder` to camel case:
-
-```javascript
-recase camel ./my-folder
-```
 
 ## License
 

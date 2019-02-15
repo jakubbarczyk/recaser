@@ -14,10 +14,8 @@ const minimist = require('minimist')
 
 // Parses arguments
 const argv = minimist(process.argv.slice(2), {
-  alias: {
-    h: 'help',
-    v: 'version'
-  },
+  alias: { h: 'help', v: 'version' },
+  boolean: ['help', 'version'],
   // TODO: when present, recase directories
   // boolean: ['d'] --> directory
   // TODO: when present, recase subdirectories
@@ -39,6 +37,21 @@ const Case = {
 
 // Maps positional arguments
 Object.assign(argv, { case: argv._[0], path: argv._[1] })
+
+// Prints out package help
+if (argv.help) {
+  console.info(`
+  Bulk-rename files in <directory> to match <case>:
+  recase <directory> <case>
+  `)
+  process.exit(0)
+}
+
+// Prints out package version
+if (argv.version) {
+  console.info('0.4.0')
+  process.exit(0)
+}
 
 const recase = Case[argv.case]
 
