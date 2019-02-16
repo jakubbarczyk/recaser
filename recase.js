@@ -49,7 +49,8 @@ if (argv.help) {
 
 // Prints out package version
 if (argv.version) {
-  console.info('0.4.0')
+  const { version } = require('./package.json')
+  console.info(version)
   process.exit(0)
 }
 
