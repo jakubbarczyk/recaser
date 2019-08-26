@@ -5,9 +5,9 @@
   "requires": true,
   "dependencies": {
     "casey-js": {
-      "version": "1.6.1",
-      "resolved": "https://registry.npmjs.org/casey-js/-/casey-js-1.6.1.tgz",
-      "integrity": "sha512-UQw4kmyKZmK/vgnZt4cd98Vpcieyxt4FNvPI7kgCsdY2XyeiZgJNXmbEGT9nA7kbMia6w2pOFYyan8sIQ/BwHg=="
+      "version": "1.6.3",
+      "resolved": "https://registry.npmjs.org/casey-js/-/casey-js-1.6.3.tgz",
+      "integrity": "sha512-F6a5Wg84LbCEaNOFhRNfkqKExzvx+YW0DULNSrcazm4WWbvSbwYtb1D9Gp9Xgn3Lrr3azUdelcUZ2LOsVSop7w=="
     },
     "minimist": {
       "version": "1.2.0",

@@ -41,8 +41,8 @@ Object.assign(argv, { case: argv._[0], path: argv._[1] })
 // Prints out package help
 if (argv.help) {
   console.info(`
-  Bulk-rename files in <directory> to match <case>:
-  recase <directory> <case>
+  Bulk-rename files and/or directories to match a case:
+  recase <case> <directory>
   `)
   process.exit(0)
 }
@@ -91,8 +91,8 @@ function startsWithAlphanumericCharacter(file) {
 
 async function isFile(file) {
   return await statAsync(join(directory, file))
-    .then((stats) => stats.isFile())
-    .then((isFile) => isFile ? file : undefined)
+    .then(stats => stats.isFile())
+    .then(isFile => isFile ? file : undefined)
     .catch(handleError)
 }
 
@@ -107,10 +107,10 @@ async function toCase(file) {
 
 function handleFiles(files) {
   return Promise
-    .all(files.map((file) => isFile(file)))
-    .then((files) => files.filter((file) => file))
-    .then((files) => files.map((file) => parse(file)))
-    .then((files) => Promise.all(files.map(toCase)))
+    .all(files.map(file => isFile(file)))
+    .then(files => files.filter(file => file))
+    .then(files => files.map(file => parse(file)))
+    .then(files => Promise.all(files.map(toCase)))
     .catch(handleError)
 }
 

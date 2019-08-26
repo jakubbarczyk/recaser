@@ -9,7 +9,7 @@
     "recase": "recase.js"
   },
   "dependencies": {
-    "casey-js": "^1.6.1",
+    "casey-js": "^1.6.3",
     "minimist": "^1.2.0"
   },
   "engines": {
