@@ -1,6 +1,6 @@
 {
   "name": "recaser",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Bulk-rename files to match a certain case.",
   "author": "Jakub Barczyk",
   "main": "recase.js",
