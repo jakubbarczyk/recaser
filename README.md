@@ -1,6 +1,6 @@
 # Recaser
 
-**Bulk-rename files to match a certain case.**
+Bulk-rename files to match a certain case.
 
 ## Installation
 
@@ -18,7 +18,7 @@ yarn global add recaser
 
 ## Usage
 
-Bulk-rename files in the `Movies` directory  to match `camel` case:
+Bulk-rename files in the `Movies` directory to match `camel` case:
 
 ```javascript
 recase camel ./Movies
