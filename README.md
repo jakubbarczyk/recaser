@@ -1,3 +1,7 @@
+[![dependencies](https://david-dm.org/jakubbarczyk/recaser.svg)](https://david-dm.org/jakubbarczyk/recaser)
+[![npm package](https://badge.fury.io/js/recaser.svg)](https://badge.fury.io/js/recaser)
+[![vulnerabilities](https://snyk.io/test/github/jakubbarczyk/recaser/badge.svg)](https://snyk.io/test/github/jakubbarczyk/recaser)
+
 # Recaser
 
 Bulk-rename files to match a certain case.
@@ -20,7 +24,7 @@ yarn global add recaser
 
 Bulk-rename files in the `Movies` directory to match `camel` case:
 
-```javascript
+```shell
 recase camel ./Movies
 ```
 
