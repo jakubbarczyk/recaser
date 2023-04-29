@@ -2,18 +2,12 @@
 
 'use strict'
 
-const { join, parse } = require('path')
-const { access, accessSync, constants, stat, statSync, readdir, rename } = require('fs')
-const { promisify } = require('util')
-
-const statAsync = promisify(stat)
-const readdirAsync = promisify(readdir)
-const renameAsync = promisify(rename)
-
-const minimist = require('minimist')
+const { join, parse } = require('node:path')
+const { accessSync, constants, statSync } = require('node:fs')
+const { readdir, rename, stat } = require('node:fs/promises')
 
 // Parses arguments
-const argv = minimist(process.argv.slice(2), {
+const argv = require('minimist')(process.argv.slice(2), {
   alias: { h: 'help', v: 'version' },
   boolean: ['help', 'version'],
   // TODO: when present, recase directories
@@ -24,8 +18,8 @@ const argv = minimist(process.argv.slice(2), {
 
 const { toLowerCase, toUpperCase, toCamelCase, toPascalCase, toKebabCase, toSnakeCase, toTrainCase } = require('casey-js')
 
-// Creates case dictionary
-const Case = {
+// Creates cases dictionary
+const cases = {
   lower: toLowerCase,
   upper: toUpperCase,
   camel: toCamelCase,
@@ -54,54 +48,67 @@ if (argv.version) {
   process.exit(0)
 }
 
-const recase = Case[argv.case]
+const recase = cases[argv.case]
 
 // Verifies if the specified case exist
-if (!recase) {
+if (argv._.length === 0) {
+  console.error(`
+  Try specifying the parameters:
+  recase <case> <directory>`)
+  process.exit(1)
+} else if (!recase) {
   console.error(`
   Cannot use case "${argv.case}".
   
   Try one of the following:
-  ${Object.keys(Case).join(', ')}`)
+  ${Object.keys(cases).join(', ')}`)
   process.exit(1)
 }
 
 const directory = join(process.cwd(), argv.path)
 
-// Verifies if the specified directory exist and is accessible
+// Verifies if the specified directory exist
 try {
   statSync(directory)
+} catch {
+  console.error(`
+  Cannot find directory "${argv.path}".`)
+  process.exit(1)
+}
+
+// Verifies if the specified directory is accessible
+try {
   accessSync(directory, constants.R_OK & constants.W_OK)
 } catch {
   console.error(`
-    Cannot find directory "${argv.path}".`)
+  Cannot access directory "${argv.path}".`)
   process.exit(1)
 }
 
 // Renames files in a directory
-readdirAsync(directory)
+readdir(directory)
   .then(handleFiles)
   .catch(handleError)
 
 const alphanumericCharacter = /^\w+/
 
+// Skips uncommon files, e.g. .gitignore
 function startsWithAlphanumericCharacter(file) {
   return alphanumericCharacter.test(file)
 }
 
-async function isFile(file) {
-  return await statAsync(join(directory, file))
+function isFile(file) {
+  return stat(join(directory, file))
     .then(stats => stats.isFile())
     .then(isFile => isFile ? file : undefined)
     .catch(handleError)
 }
 
-async function toCase(file) {
-  // Skips uncommon files, e.g. .gitignore
+function toCase(file) {
   if (startsWithAlphanumericCharacter(file.base)) {
     const oldName = join(directory, file.base)
     const newName = join(directory, recase(file.name).concat(file.ext))
-    return await renameAsync(oldName, newName)
+    return rename(oldName, newName)
   }
 }
 
