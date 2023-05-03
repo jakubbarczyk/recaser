@@ -2,31 +2,27 @@
 
 'use strict'
 
-const { join, parse } = require('node:path')
 const { accessSync, constants, statSync } = require('node:fs')
-const { readdir, rename, stat } = require('node:fs/promises')
+const { access, readdir, rename, stat } = require('node:fs/promises')
+const { join, parse, resolve } = require('node:path')
 
 // Parses arguments
 const argv = require('minimist')(process.argv.slice(2), {
-  alias: { h: 'help', v: 'version' },
-  boolean: ['help', 'version'],
-  // TODO: when present, recase directories
-  // boolean: ['d'] --> directory
-  // TODO: when present, recase subdirectories
-  // boolean: ['r'] --> recursive
+  alias: { h: 'help', r: 'recursive', v: 'version' },
+  boolean: ['help', 'recursive', 'version']
+  // TODO: [-d, --directory] when present, recase directory names
 })
 
-const { toLowerCase, toUpperCase, toCamelCase, toPascalCase, toKebabCase, toSnakeCase, toTrainCase } = require('casey-js')
+const casey = require('casey-js')
 
-// Creates cases dictionary
 const cases = {
-  lower: toLowerCase,
-  upper: toUpperCase,
-  camel: toCamelCase,
-  pascal: toPascalCase,
-  kebab: toKebabCase,
-  snake: toSnakeCase,
-  train: toTrainCase
+  lower: casey.toLowerCase,
+  upper: casey.toUpperCase,
+  camel: casey.toCamelCase,
+  pascal: casey.toPascalCase,
+  kebab: casey.toKebabCase,
+  snake: casey.toSnakeCase,
+  train: casey.toTrainCase
 }
 
 // Maps positional arguments
@@ -34,9 +30,9 @@ Object.assign(argv, { case: argv._[0], path: argv._[1] })
 
 // Prints out package help
 if (argv.help) {
-  console.info(`
-  Bulk-rename files and/or directories to match a case:
-  recase <case> <directory>
+  process.stdout.write(`
+  Bulk-rename files and directories to match a case:
+  recase <case> <path> [-r, --recursive]
   `)
   process.exit(0)
 }
@@ -44,83 +40,70 @@ if (argv.help) {
 // Prints out package version
 if (argv.version) {
   const { version } = require('./package.json')
-  console.info(version)
+  process.stdout.write(version)
   process.exit(0)
 }
 
 const recase = cases[argv.case]
 
-// Verifies if the specified case exist
 if (argv._.length === 0) {
-  console.error(`
-  Try specifying the parameters:
-  recase <case> <directory>`)
-  process.exit(1)
-} else if (!recase) {
-  console.error(`
-  Cannot use case "${argv.case}".
-  
-  Try one of the following:
-  ${Object.keys(cases).join(', ')}`)
-  process.exit(1)
+  handleError(Error('\n  Try specifying the parameters:\n  recase <case> <path>'))
 }
 
-const directory = join(process.cwd(), argv.path)
+if (!recase) {
+  handleError(Error(`\n  Cannot use case "${argv.case}"\n\n  Try one of the following:\n  ${Object.keys(cases).join(', ')}`))
+}
+
+if (!argv.path) {
+  handleError(Error('\n  Try specifying the <path> parameter:\n  recase <case> <path>'))
+}
 
 // Verifies if the specified directory exist
 try {
-  statSync(directory)
+  statSync(argv.path)
 } catch {
-  console.error(`
-  Cannot find directory "${argv.path}".`)
-  process.exit(1)
+  handleError(Error(`\n  Cannot find path "${argv.path}"`))
 }
 
 // Verifies if the specified directory is accessible
 try {
-  accessSync(directory, constants.R_OK & constants.W_OK)
+  accessSync(argv.path, constants.R_OK & constants.W_OK)
 } catch {
-  console.error(`
-  Cannot access directory "${argv.path}".`)
-  process.exit(1)
+  handleError(Error(`\n  Cannot access directory "${argv.path}"`))
 }
 
-// Renames files in a directory
-readdir(directory)
-  .then(handleFiles)
-  .catch(handleError)
+const alphanumericCharacter = /^\w+/i
 
-const alphanumericCharacter = /^\w+/
+// Skips uncommon files, such as .gitignore
+const startsWithAlphanumericCharacter = file => alphanumericCharacter.test(file)
 
-// Skips uncommon files, e.g. .gitignore
-function startsWithAlphanumericCharacter(file) {
-  return alphanumericCharacter.test(file)
-}
+const isFile = path => stat(path).then(stats => stats.isFile())
 
-function isFile(file) {
-  return stat(join(directory, file))
-    .then(stats => stats.isFile())
-    .then(isFile => isFile ? file : undefined)
-    .catch(handleError)
-}
-
-function toCase(file) {
+const toCase = file => {
   if (startsWithAlphanumericCharacter(file.base)) {
-    const oldName = join(directory, file.base)
-    const newName = join(directory, recase(file.name).concat(file.ext))
+    const oldName = join(file.dir, file.base)
+    const newName = join(file.dir, recase(file.name).concat(file.ext))
     return rename(oldName, newName)
   }
 }
 
-function handleFiles(files) {
-  return Promise
-    .all(files.map(file => isFile(file)))
-    .then(files => files.filter(file => file))
-    .then(files => files.map(file => parse(file)))
-    .then(files => Promise.all(files.map(toCase)))
+handleDirectory(resolve(argv.path))
+
+function handleDirectory(directory) {
+  return readdir(directory)
+    .then(paths => Promise.all(paths
+      .map(path => join(directory, path))
+      .map(absolutePath => isFile(absolutePath)
+        .then(isFile => {
+          if (isFile) return toCase(parse(absolutePath))
+          if (argv.recursive) return handleDirectory(absolutePath)
+        })
+      )
+    ))
     .catch(handleError)
 }
 
 function handleError(error) {
-  console.error(error.message)
+  process.stderr.write(error.message)
+  process.exit(1)
 }

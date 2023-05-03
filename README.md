@@ -28,6 +28,12 @@ Bulk-rename files in the `Movies` directory to match `camel` case:
 recase camel ./Movies
 ```
 
+Bulk-rename files in the `Movies` directory, and its subdirectories, to match `kebab` case:
+
+```shell
+recase kebab ./Movies --recursive
+```
+
 ## Options
 
 Recaser handles the following cases:
